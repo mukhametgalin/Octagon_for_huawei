@@ -1,0 +1,38 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/artur/Octagon_for_huawei/Octagon.h
+vector
+-
+math.h
+-
+algorithm
+-
+iostream
+-
+
+/home/artur/Octagon_for_huawei/main.cpp
+iostream
+-
+Octagon.h
+/home/artur/Octagon_for_huawei/Octagon.h
+test_octagon.h
+/home/artur/Octagon_for_huawei/test_octagon.h
+
+/home/artur/Octagon_for_huawei/test_octagon.h
+Octagon.h
+/home/artur/Octagon_for_huawei/Octagon.h
+cassert
+-
+chrono
+-
+thread
+-
+random
+-
+
