@@ -108,7 +108,19 @@ void inflateTest() {
 }
 
 void intersectionTest() {
+  std::cout << "Let's intersect some Octagons\n";
+  Octagon a = {{2, 0}, {5, 0}, {7, 2}, {7, 5}, {5, 7}, {2, 7}, {0, 5}, {0, 2}};
+  Octagon b = {{7, 5}, {9, 7}, {9, 9}, {8, 10}, {6, 10}, {5, 9}, {5, 7}};
+  Octagon* c = intersection(a, b);
 
+  assert(c != nullptr);
+
+  for (int i = 0; i < Octagon::size; ++i) {
+    Point a = c->vertex(i + 1);
+    assert(a == Point(5, 7) || a == Point(7, 5));
+  }
+
+  std::cout << "OK! First intersection test passed\n";
 }
 
 void myTestingFunction() {

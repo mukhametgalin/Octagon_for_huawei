@@ -6,6 +6,7 @@
 #include <math.h>
 #include <algorithm>
 #include <iostream>
+#include <assert.h>
 
 class Point {
  public:
@@ -15,10 +16,14 @@ class Point {
   Point() : x(0), y(0) {}
   Point(int x, int y) : x(x), y(y) {}
 
+  bool operator==(const Point a) {
+    return x == a.x && y == a.y;
+  }
 };
 
 Point linesIntersection(int a1, int b1, int c1, int a2, int b2, int c2) {
   //intersection point of 2 lines: a1x + b1y == c1, a2x + b2y = c2.
+  assert((b2 * a1 - a2 * b1) != 0);
   return {(b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1),
           (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1)};
 }
@@ -234,7 +239,8 @@ bool hasIntersection(const Octagon& first, const Octagon& second) {
 
   for (int i = 0; i < Octagon::size; ++i) {
     for (int j = 0; j < Octagon::size; ++j) {
-      if (i != j) {
+      if (i != j && (i - j) % 4 != 0) {
+
         Point intersection_point = linesIntersection(Octagon::c[i].first, Octagon::c[i].second,
                                                      first.limit(i + 1),
                                                      Octagon::c[j].first, Octagon::c[j].second,
@@ -262,6 +268,8 @@ Octagon* intersection(const Octagon& first, const Octagon& second) {
   for (int i = 0; i < Octagon::size; ++i) {
     answer->l[i] = std::min(first.l[i], second.l[i]);
   }
+
+  answer->normalize();
 
   return answer;
 }
