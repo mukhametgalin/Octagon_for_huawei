@@ -5,5 +5,7 @@
 int main() {
 
   myTestingFunction();
+
   return 0;
 }
+

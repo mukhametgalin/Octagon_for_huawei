@@ -27,13 +27,16 @@ void constructorsTest() {
   std::cout << "Constructor tests: \n";
 
   Octagon first = {{1, 1}, {1, 2}, {99, 10}, {-30, -300}};
+
   Octagon second = first;
+
   assert(first == second);
 
   std::cout << "OK! Copy constructor works\n";
 
   Octagon third;
   try {
+    std::cout << third.l.size() << std::endl;
     third.vertex(3);
   } catch (EmptyOctagonError) {
     std::cout << "OK! exception safety works\n";
@@ -82,6 +85,12 @@ void constructorsTest() {
   fifth = Octagon(10, 2, 1, 0, -1, -2, -1, 0);
   assert(fifth.limit(1) == 1);
 
+  fifth = Octagon(-1, -1, -1, -1, -1, -1, -1, -1);
+  assert(fifth.empty());
+  fifth = Octagon(1, 1, 1, 1, 1, 1, 1, 1);
+  assert(!fifth.empty());
+  fifth = Octagon(1, 1, 1, 1, -1, -1, -1, -1);
+  assert(fifth.empty());
   std::cout << "OK! Limits constructor works\n";
 }
 
@@ -93,7 +102,6 @@ void inflateTest() {
   for (int j = 0; j < 1000; ++j) {
 
     Octagon first = getRandomOctagon();
-
     if (first.empty())
       continue;
     Octagon copy = first;
@@ -104,6 +112,11 @@ void inflateTest() {
       assert(first == copy);
     }
   }
+  Octagon first = Octagon(10, 20, 10, 20, 10, 20, 10, 20);
+  Octagon second = first;
+  second.inflate(5);
+  second.inflate(-5);
+  assert(first == second);
   std::cout << "OK! inflate works\n";
 }
 
@@ -112,7 +125,6 @@ void intersectionTest() {
   Octagon a = {{2, 0}, {5, 0}, {7, 2}, {7, 5}, {5, 7}, {2, 7}, {0, 5}, {0, 2}};
   Octagon b = {{7, 5}, {9, 7}, {9, 9}, {8, 10}, {6, 10}, {5, 9}, {5, 7}};
   Octagon* c = intersection(a, b);
-
   assert(c != nullptr);
 
   for (int i = 0; i < Octagon::size; ++i) {

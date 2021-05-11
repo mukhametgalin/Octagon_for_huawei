@@ -21,13 +21,6 @@ class Point {
   }
 };
 
-Point linesIntersection(int a1, int b1, int c1, int a2, int b2, int c2) {
-  //intersection point of 2 lines: a1x + b1y == c1, a2x + b2y = c2.
-  assert((b2 * a1 - a2 * b1) != 0);
-  return {(b2 * c1 - b1 * c2) / (b2 * a1 - a2 * b1),
-          (a1 * c2 - a2 * c1) / (b2 * a1 - a2 * b1)};
-}
-
 struct EmptyOctagonError {};
 
 class Octagon {
@@ -45,27 +38,25 @@ class Octagon {
 
   static const std::vector<std::pair<int, int>> c;
 
-  Point localLinesIntersection(int first, int second) { // just for convenience
-    return {(l[first] * c[second].second - l[second] * c[first].second)
-        / (c[first].first * c[second].second - c[second].first * c[first].second),
-            (c[first].first * l[second] - c[second].first * l[first])
-        / (c[first].first * c[second].second - c[second].first * c[first].second)};
-  }
-
   void normalize() {
     for (int i = 0; i < size; ++i) {
       int next = (i + 1) % size;
       int next2 = (i + 2) % size;
       int prev = (i - 1 + size) % size;
       int prev2 = (i - 2 + size) % size;
-      Point first, second, third;
-      first = localLinesIntersection(next, prev2);
-      second = localLinesIntersection(prev, next2);
-      third = localLinesIntersection(prev, next);
-      int first_value = c[i].first * first.x + c[i].second * first.y;
-      int second_value = c[i].first * second.x + c[i].second * second.y;
-      int third_value = c[i].first * third.x + c[i].second * third.y;
-      l[i] = std::min({first_value, second_value, third_value, l[i]});
+
+      if (i % 2 == 0) {
+        int first =  2 * (l[next2] + l[prev]);
+        int second = l[next] + l[prev];
+        int third = 2 * (l[prev2] + l[next]);
+        l[i] = std::min({first, second, third, 2 * l[i]});
+        l[i] = l[i] / 2 + (l[i] % 2);
+      } else {
+        int first = l[next2] + 2 * l[prev];
+        int second = l[next] + l[prev];
+        int third = 2 * l[next] + l[prev2];
+        l[i] = std::min({first, second, third, l[i]});
+      }
     }
   }
 
@@ -140,8 +131,11 @@ class Octagon {
 
   // describing functions:
   int limit(int dir) const {
+    if (dir < 1 || dir > size) {
+      throw std::exception();
+      // if we want to get limit with number not from [1, size=8], we will get UB.
+    }
     emptyCheck();
-
     return l[dir - 1];
   }
 
@@ -189,12 +183,16 @@ class Octagon {
   // modifying functions:
   void coverPoint(const Point& point) {
     if (empty()) {
-      *this = Octagon({point});
+      l.resize(size);
+      for (int i = 0 ; i < size; ++i) {
+        l[i] = c[i].first * point.x + c[i].second * point.y;
+      }
       return;
     }
     for (int i = 0; i < size; ++i) {
       l[i] = std::max(l[i], c[i].first * point.x + c[i].second * point.y);
     }
+    normalize();
   }
 
   void inflate(int inflateParam) {
@@ -205,15 +203,43 @@ class Octagon {
 
     for (int i = 0; i < size; ++i) {
       int d = inflateParam;
-      if (i % 2) {
-        d = static_cast<int>(d * std::sqrt(2) + (d > 0 ? 1 : -1));
+      if (i % 2) { // there were mistake:
+        d = static_cast<int>(static_cast<double>(d) / std::sqrt(2 ) + (d > 0 ? 1 : -1));
       }
       l[i] += d;
     }
   }
 
   bool empty() const {
-    return l.size() != static_cast<size_t>(size);
+
+    if(l.size() != static_cast<size_t>(size)) { // our octagon have no limits, so it is empty
+      return true;
+    }
+
+    if (-l[4] > l[0] || -l[6] > l[2] || -l[5] > l[1] || -l[7] > l[3]) // trivial case
+      return true;
+
+    // then I get doubled points of rectangle M that contains diagonal rectangle L
+    int y_up = l[1] + l[3];
+    int x_right = l[1] + l[7];
+    int x_left = -l[3] - l[5];
+    int y_down = -l[5] - l[7];
+
+    // there I check that M intersects N
+    if (x_left > 2 * l[0]  || -x_right > 2 * l[4]
+      || y_down > 2 * l[2] || -y_up > 2 * l[6])
+      return true;
+
+    // vertices of N
+    Point left_up = Point(-l[4], l[2]);
+    Point right_up = Point(l[0], l[2]);
+    Point left_down = Point(-l[4], -l[6]);
+    Point right_down = Point(l[0], -l[6]);
+
+    return (-right_up.x - right_up.y > l[5]
+        || left_down.x + left_down.y > l[1]
+        || left_up.x - left_up.y > l[7]
+        || -right_down.x + right_down.y > l[3]);
   }
 
   void clear() {
@@ -233,34 +259,24 @@ const std::vector<std::pair<int, int>> Octagon::c =
 
 const int Octagon::size = 8;
 
+Octagon* intersection(const Octagon&, const Octagon&);
+
 bool hasIntersection(const Octagon& first, const Octagon& second) {
   if (first.empty() || second.empty())
     return false;
 
-  for (int i = 0; i < Octagon::size; ++i) {
-    for (int j = 0; j < Octagon::size; ++j) {
-      if (i != j && (i - j) % 4 != 0) {
+  Octagon* res = intersection(first, second);
 
-        Point intersection_point = linesIntersection(Octagon::c[i].first, Octagon::c[i].second,
-                                                     first.limit(i + 1),
-                                                     Octagon::c[j].first, Octagon::c[j].second,
-                                                     second.limit(j + 1));
-
-        if (first.isPointInside(intersection_point) >= 0
-            && second.isPointInside(intersection_point) >= 0) {
-          return true;
-        }
-      }
-    }
+  if (res != nullptr) {
+    delete res;
+    return true;
   }
+
   return false;
 }
 
 Octagon* intersection(const Octagon& first, const Octagon& second) {
-  first.emptyCheck();
-  second.emptyCheck();
-
-  if (!hasIntersection(first, second))
+  if (first.empty() || second.empty())
     return nullptr;
 
   Octagon* answer = new Octagon(first);
@@ -268,9 +284,11 @@ Octagon* intersection(const Octagon& first, const Octagon& second) {
   for (int i = 0; i < Octagon::size; ++i) {
     answer->l[i] = std::min(first.l[i], second.l[i]);
   }
-
+  if (answer->empty()) {
+    delete answer;
+    return nullptr;
+  }
   answer->normalize();
-
   return answer;
 }
 
