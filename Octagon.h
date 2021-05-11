@@ -221,6 +221,8 @@ class Octagon {
     if (-l[4] > l[0] || -l[6] > l[2] || -l[5] > l[1] || -l[7] > l[3]) // trivial case
       return true;
 
+    // M, N and L - rectangles from theoretical explanation
+
     // then I get doubled points of rectangle M that contains diagonal rectangle L
     int y_up = l[1] + l[3];
     int x_right = l[1] + l[7];
