@@ -205,8 +205,8 @@ class Octagon {
 
     for (int i = 0; i < size; ++i) {
       int d = inflateParam;
-      if (i % 2) { // there were mistake:
-        d = static_cast<int>(static_cast<double>(d) / std::sqrt(2 ) + (d > 0 ? 1 : -1));
+      if (i % 2) {
+        d = static_cast<int>(static_cast<double>(d) * std::sqrt(2 ) + (d > 0 ? 1 : -1));
       }
       l[i] += d;
     }
