@@ -39,6 +39,8 @@ class Octagon {
   static const std::vector<std::pair<int, int>> c;
 
   void normalize() {
+    if (empty())
+      return;
     for (int i = 0; i < size; ++i) {
       int next = (i + 1) % size;
       int next2 = (i + 2) % size;
