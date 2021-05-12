@@ -273,7 +273,6 @@ class Octagon {
         int third = 2 * (l[prev2] + l[next]);
         int value = std::min({first, second, third});
         if (value < 2 * l[i]) {
-          if (value % 2 == 0)
           if (inflateParam > 0)
             add[i] = 2 * inflateParam;
         } else {
