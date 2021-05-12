@@ -62,6 +62,7 @@ struct Enum {
   }
 
 };
+
 struct EmptyOctagonError {};
 
 class Octagon {
@@ -269,18 +270,18 @@ class Octagon {
         int second = l[next] + l[prev];
         int third = 2 * (l[prev2] + l[next]);
         int value = std::min({first, second, third});
-        if (value < 2 * l[i]) {
+        if (value <= 2 * l[i]) {
           if (inflateParam > 0)
             add[i] = 2 * inflateParam;
         } else {
             add[i] = inflateParam;
-      }
+        }
       } else {
         int first = l[next2] + 2 * l[prev];
         int second = l[next] + l[prev];
         int third = 2 * l[next] + l[prev2];
         int value = std::min({first, second, third});
-        if (value < l[i]) {
+        if (value <= l[i]) {
           if (inflateParam > 0)
             add[i] = 2 * inflateParam;
         } else {
