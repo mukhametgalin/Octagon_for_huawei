@@ -21,6 +21,47 @@ class Point {
   }
 };
 
+struct Enum {
+  int first;
+  int second;
+
+  Enum() : first(0), second(0) {}
+
+  Enum(int x, int y) : first(x), second(y) {}
+
+  bool correct() const {
+    if (first == 0) {
+      if (second == 0) {
+        return false;
+      }
+      return true;
+    }
+    if (second == 0) {
+      return true;
+    }
+
+    return first == second || first == -second;
+  }
+
+  void normalize() {
+    if (!correct())
+      throw std::exception();
+
+    if (first != 0) {
+      first /= first * (first < 0 ? -1 : 1);
+    }
+    if (second != 0) {
+      second /= second * (second < 0 ? -1 : 1);
+    }
+  }
+
+  bool operator==(Enum other) {
+    normalize();
+    other.normalize();
+    return first == other.first && second == other.second;
+  }
+
+};
 struct EmptyOctagonError {};
 
 class Octagon {
@@ -36,7 +77,7 @@ class Octagon {
  private:
   std::vector<int> l;
 
-  static const std::vector<std::pair<int, int>> c;
+  static const std::vector<Enum> c;
 
   void normalize() {
     if (empty())
@@ -141,7 +182,22 @@ class Octagon {
     return l[dir - 1];
   }
 
+  int limit(Enum e) const {
+    e.normalize();
+    int pos = 0;
+    for (int i = 0; i < size; ++i) {
+      if (e == c[i]) {
+        pos = i;
+        break;
+      }
+    }
+    return limit(pos);
+  }
+
   Point vertex(int dir) const {
+    if (dir < 1 || dir > 8)
+      throw std::exception();
+
     emptyCheck();
 
     Point answer = {0, 0};
@@ -203,13 +259,44 @@ class Octagon {
     if (inflateParam == 0)
       return;
 
+    int add[size];
+
     for (int i = 0; i < size; ++i) {
-      int d = inflateParam;
-      if (i % 2) {
-        d = static_cast<int>(static_cast<double>(d) * std::sqrt(2 ) + (d > 0 ? 1 : -1));
+      int next = (i + 1) % size;
+      int next2 = (i + 2) % size;
+      int prev = (i - 1 + size) % size;
+      int prev2 = (i - 2 + size) % size;
+
+      if (i % 2 == 0) {
+        int first =  2 * (l[next2] + l[prev]);
+        int second = l[next] + l[prev];
+        int third = 2 * (l[prev2] + l[next]);
+        int value = std::min({first, second, third});
+        if (value < 2 * l[i]) {
+          if (value % 2 == 0)
+          if (inflateParam > 0)
+            add[i] = 2 * inflateParam;
+        } else {
+            add[i] = inflateParam;
       }
-      l[i] += d;
+      } else {
+        int first = l[next2] + 2 * l[prev];
+        int second = l[next] + l[prev];
+        int third = 2 * l[next] + l[prev2];
+        int value = std::min({first, second, third});
+        if (value < l[i]) {
+          if (inflateParam > 0)
+            add[i] = 2 * inflateParam;
+        } else {
+          add[i] = static_cast<int>(static_cast<double>(inflateParam) * sqrt(2) + (inflateParam < 0 ? -1 : 1));
+        }
+      }
     }
+
+    for (int i = 0; i < size; ++i)
+      l[i] += add[i];
+
+    normalize();
   }
 
   bool empty() const {
@@ -251,7 +338,7 @@ class Octagon {
   }
 };
 
-const std::vector<std::pair<int, int>> Octagon::c =
+const std::vector<Enum> Octagon::c =
     {{1, 0},
     {1, 1},
     {0, 1},
