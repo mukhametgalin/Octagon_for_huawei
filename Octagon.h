@@ -186,12 +186,9 @@ class Octagon {
     e.normalize();
     int pos = 0;
     for (int i = 0; i < size; ++i) {
-      if (e == c[i]) {
-        pos = i;
-        break;
-      }
+      if (e == c[i])
+        return l[i];
     }
-    return limit(pos);
   }
 
   Point vertex(int dir) const {
